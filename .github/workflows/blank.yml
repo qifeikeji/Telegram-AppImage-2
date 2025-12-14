@@ -25,10 +25,15 @@ jobs:
 
     - name: Make AppImage
       run: |
-        sudo apt install wget tar
+        sudo apt update
+        sudo apt install -y wget tar squashfs-tools
         chmod +x ./*-appimage.sh
         ./*-appimage.sh
-        mkdir dist
+        chmod +x ./ci/extract-squashfs-root.sh
+        ./ci/extract-squashfs-root.sh "${{ matrix.arch }}"
+
+        mkdir -p dist
+        # 仍保留原始 AppImage（如果你只想要 squashfs-root，可删除下面一行）
         mv *.AppImage* dist/
 
     - name: Upload artifact
@@ -78,6 +83,7 @@ jobs:
           make_latest: true
           files: |
             *.AppImage*
+            *.tar.gz
 
       - uses: actions/checkout@v4
       - name: Update LATEST_VERSION
